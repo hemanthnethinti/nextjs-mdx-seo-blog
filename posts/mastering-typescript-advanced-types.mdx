@@ -1,0 +1,150 @@
+---
+title: "Mastering TypeScript: Advanced Types and Patterns"
+date: "2024-01-20"
+author: "Michael Chen"
+tags: ["TypeScript", "Programming", "Best Practices"]
+excerpt: "Work with TypeScript utility types, conditional types, and type guards to write more robust applications."
+---
+
+# Mastering TypeScript: Advanced Types and Patterns
+
+I've been working with TypeScript for a few years now, and I still discover new patterns that make my code cleaner and safer. If you're already familiar with the basics, let's dive into the more advanced features.
+
+## Utility Types That Save Time
+
+TypeScript comes with several utility types that let you transform existing types without rewriting them from scratch.
+
+### Partial and Required
+
+These are useful when you're working with optional fields:
+
+```typescript
+interface User {
+  id: number;
+  name: string;
+  email: string;
+}
+
+// Make all properties optional - useful for form updates
+type UserUpdate = Partial<User>;
+
+// Make everything required - useful for validation
+type CompleteUser = Required<User>;
+```
+
+### Pick and Omit
+
+Sometimes you need just a subset of a type:
+
+```typescript
+// Create a type with only specific fields
+type UserPreview = Pick<User, "id" | "name">;
+
+// Create a type without certain fields
+type UserPublic = Omit<User, "email">;
+```
+
+## Conditional Types
+
+This is where things get interesting. You can make types that change based on conditions:
+
+```typescript
+// Check if a type is a string
+type IsString<T> = T extends string ? true : false;
+
+type A = IsString<string>; // true
+type B = IsString<number>; // false
+```
+
+This is powerful when combined with generics:
+
+```typescript
+type GetReturnType<T> = T extends (...args: any[]) => infer R ? R : never;
+
+type MyFunction = (x: number) => string;
+type ReturnType = GetReturnType<MyFunction>; // string
+```
+
+## Type Guards
+
+When you need to narrow down types at runtime, type guards come in handy:
+
+```typescript
+function isString(value: unknown): value is string {
+  return typeof value === "string";
+}
+
+function processValue(value: string | number) {
+  if (isString(value)) {
+    // TypeScript knows this is a string
+    console.log(value.toUpperCase());
+  } else {
+    // TypeScript knows this is a number
+    console.log(value.toFixed(2));
+  }
+}
+```
+
+## Generic Constraints
+
+Generics become much more useful when you constrain them:
+
+```typescript
+interface HasId {
+  id: number;
+}
+
+// This function only works with types that have an id property
+function findById<T extends HasId>(items: T[], id: number): T | undefined {
+  return items.find((item) => item.id === id);
+}
+
+const users = [{ id: 1, name: "Alice" }];
+const found = findById(users, 1); // Works!
+const ids = [1, 2, 3];
+// findById(ids, 1); // Error - numbers don't have id property
+```
+
+## Mapped Types
+
+Mapped types let you create new types by transforming existing ones:
+
+```typescript
+// Create a type where all properties are readonly
+type Readonly<T> = {
+  readonly [P in keyof T]: T[P];
+};
+
+type ReadonlyUser = Readonly<User>;
+// Now all User properties are readonly
+```
+
+## Real-World Example
+
+Here's how you might use these together in a real application:
+
+```typescript
+// Define your base types
+interface ApiResponse<T> {
+  data: T;
+  error?: string;
+}
+
+// Create utility types for your use case
+type ApiSuccess<T> = Omit<ApiResponse<T>, "error">;
+type ApiError = Pick<ApiResponse<never>, "error">;
+
+// Use conditional types for flexible return types
+type GetData<T> = T extends ApiResponse<infer U> ? U : never;
+```
+
+## Things to Keep in Mind
+
+- Enable strict mode in your TypeScript config - it catches more issues
+- Try to avoid the `any` type. Use `unknown` when you genuinely don't know the type
+- Let TypeScript infer types when it can. You don't need to type everything explicitly
+- Create reusable types instead of repeating the same patterns
+
+## Wrapping Up
+
+These advanced patterns might seem complex at first, but they're incredibly useful once you start using them. The effort you put into understanding them pays off through fewer bugs and more maintainable code.
