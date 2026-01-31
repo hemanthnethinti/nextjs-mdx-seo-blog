@@ -1,0 +1,201 @@
+---
+title: "Modern React Patterns and Best Practices"
+date: "2024-01-28"
+author: "David Park"
+tags: ["React", "JavaScript", "Best Practices", "Hooks"]
+excerpt: "Learn practical React patterns including custom hooks, context optimization, and performance techniques."
+---
+
+# Modern React Patterns and Best Practices
+
+React has evolved significantly over the past few years. The shift from class components to hooks has opened up new possibilities for how we structure our applications. Let me share some patterns I've found useful in my own projects.
+
+## Writing Custom Hooks
+
+One of the best things about React hooks is how easy they make code reuse. Instead of wrapping components in higher-order components or render props, you just write a function that uses hooks.
+
+Here's a practical example - tracking window size:
+
+```javascript
+import { useState, useEffect } from "react";
+
+function useWindowSize() {
+  const [size, setSize] = useState({
+    width: window.innerWidth,
+    height: window.innerHeight,
+  });
+
+  useEffect(() => {
+    const handleResize = () => {
+      setSize({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  return size;
+}
+```
+
+Now any component can use this logic: `const size = useWindowSize();`
+
+## Managing Context Efficiently
+
+Context is useful, but it can cause performance issues. When you update a context value, every component using that context re-renders, even if they only need part of the value.
+
+The trick is to split your context:
+
+```javascript
+const StateContext = React.createContext();
+const DispatchContext = React.createContext();
+
+function Provider({ children }) {
+  const [state, dispatch] = useReducer(reducer, initialState);
+
+  return (
+    <StateContext.Provider value={state}>
+      <DispatchContext.Provider value={dispatch}>
+        {children}
+      </DispatchContext.Provider>
+    </StateContext.Provider>
+  );
+}
+```
+
+This way, components that only dispatch actions don't re-render when state changes.
+
+## Compound Components
+
+The compound component pattern gives you really flexible component APIs. Think of HTML elements like `<select>` and `<option>` - they work together but you can structure them however you want.
+
+```javascript
+function Tabs({ children }) {
+  const [activeTab, setActiveTab] = useState(0);
+
+  return (
+    <TabsContext.Provider value={{ activeTab, setActiveTab }}>
+      <div>{children}</div>
+    </TabsContext.Provider>
+  );
+}
+
+Tabs.Tab = function Tab({ index, children }) {
+  const { activeTab, setActiveTab } = useContext(TabsContext);
+  return (
+    <button
+      className={activeTab === index ? "active" : ""}
+      onClick={() => setActiveTab(index)}
+    >
+      {children}
+    </button>
+  );
+};
+
+Tabs.Panel = function TabPanel({ index, children }) {
+  const { activeTab } = useContext(TabsContext);
+  return activeTab === index ? <div>{children}</div> : null;
+};
+```
+
+## Performance Optimization
+
+### Know When to Memoize
+
+Memoization isn't free - it has a cost. Use it strategically:
+
+```javascript
+function MyComponent({ data, onUpdate }) {
+  // Only recalculate when data actually changes
+  const processed = useMemo(() => {
+    return data.map(expensiveOperation);
+  }, [data]);
+
+  // Only recreate this function when onUpdate changes
+  const handleClick = useCallback(
+    (id) => {
+      onUpdate(id);
+    },
+    [onUpdate],
+  );
+
+  return <div>...</div>;
+}
+```
+
+### React.memo for Pure Components
+
+If a component always renders the same output for the same props, wrap it:
+
+```javascript
+const Card = React.memo(function Card({ item }) {
+  return <div className="card">{item.name}</div>;
+});
+```
+
+## Managing Complex State
+
+For complex state with multiple related values, `useReducer` is cleaner than multiple `useState` calls:
+
+```javascript
+function reducer(state, action) {
+  switch (action.type) {
+    case "INCREMENT":
+      return { ...state, count: state.count + 1 };
+    case "RESET":
+      return { count: 0 };
+    default:
+      return state;
+  }
+}
+
+function Counter() {
+  const [state, dispatch] = useReducer(reducer, { count: 0 });
+
+  return (
+    <div>
+      Count: {state.count}
+      <button onClick={() => dispatch({ type: "INCREMENT" })}>Increase</button>
+    </div>
+  );
+}
+```
+
+## Error Boundaries Still Matter
+
+Errors in React bubble up and crash your whole app. Error boundaries let you handle them gracefully:
+
+```javascript
+class ErrorBoundary extends React.Component {
+  state = { hasError: false };
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    // Log error somewhere
+    console.error(error);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return <div>Something went wrong. Please try refreshing.</div>;
+    }
+    return this.props.children;
+  }
+}
+```
+
+## General Principles That Work
+
+- Keep components focused on one thing
+- Write tests for behavior, not implementation details
+- Use TypeScript to catch mistakes early
+- Don't pass props through many levels - use context instead
+- Be intentional about performance optimization
+
+The most important thing is writing code that you and your team can understand and maintain. The best pattern is the one that makes your code easier to work with.
