@@ -1,0 +1,249 @@
+---
+title: "Docker Containerization: A Complete Guide"
+date: "2024-02-05"
+author: "James Wilson"
+tags: ["Docker", "DevOps", "Deployment", "Containers"]
+excerpt: "Containerize your applications with Docker. Learn the fundamentals and deploy production-ready applications."
+---
+
+# Docker Containerization: A Complete Guide
+
+When I first heard about Docker, it seemed complicated. But once you understand what it actually does, it's simpler than it seems. Docker lets you package your application with all its dependencies and run it anywhere.
+
+## What Problem Does Docker Solve?
+
+The classic problem: "It works on my machine but not on the server." Docker eliminates that by packaging your application exactly as it runs on your computer, and running it the same way everywhere else.
+
+A Docker container is like a lightweight virtual machine, but more efficient. It includes:
+
+- Your application code
+- All the dependencies it needs
+- The runtime environment
+- Configuration
+
+Everything is isolated from everything else. You can run multiple versions of Node, Python, or whatever you need, and they don't conflict.
+
+## Basic Concepts
+
+### Images and Containers
+
+An **image** is like a blueprint. A **container** is a running instance of that image.
+
+Think of it like this: the image is a recipe, the container is the meal you make from that recipe.
+
+### Dockerfile
+
+A Dockerfile is just a text file that describes how to build your image:
+
+```dockerfile
+# Start from a base image
+FROM node:18-alpine
+
+# Set working directory
+WORKDIR /app
+
+# Copy files
+COPY package*.json ./
+
+# Install dependencies
+RUN npm install
+
+# Copy source code
+COPY . .
+
+# Build the app
+RUN npm run build
+
+# Expose port
+EXPOSE 3000
+
+# Run the app
+CMD ["npm", "start"]
+```
+
+## Making Dockerfile Efficient
+
+The order of lines in your Dockerfile matters because Docker caches layers. Structure it so the things that change frequently come last:
+
+```dockerfile
+# These don't change often, so put them first
+FROM node:18-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+
+# Source code changes frequently, so it goes last
+COPY . .
+RUN npm run build
+```
+
+## Multi-Stage Builds
+
+For Node/React apps, your build produces a lot of temporary files you don't need in production. Use multi-stage builds to keep your final image small:
+
+```dockerfile
+# First stage: build
+FROM node:18-alpine AS builder
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+RUN npm run build
+
+# Second stage: production
+FROM node:18-alpine
+WORKDIR /app
+# Copy only what you need from the builder
+COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package.json ./package.json
+EXPOSE 3000
+CMD ["npm", "start"]
+```
+
+This results in a much smaller final image.
+
+## Docker Compose
+
+For real applications, you often need multiple services - your web app, a database, cache, etc. Docker Compose lets you define them all in one file:
+
+```yaml
+version: "3.8"
+
+services:
+  web:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgres://db:5432/myapp
+    depends_on:
+      - db
+
+  db:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_PASSWORD=secret
+      - POSTGRES_DB=myapp
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+volumes:
+  postgres-data:
+```
+
+Now you can start everything with one command: `docker-compose up`
+
+## Useful Docker Commands
+
+```bash
+# Build an image
+docker build -t my-app:latest .
+
+# Run a container
+docker run -p 3000:3000 my-app:latest
+
+# Start with Docker Compose
+docker-compose up -d
+
+# See running containers
+docker ps
+
+# See logs
+docker logs container-id
+
+# Stop a container
+docker stop container-id
+
+# Clean up unused images
+docker system prune -a
+```
+
+## Keeping Secrets Safe
+
+Never put secrets in your Dockerfile or image. Use environment variables:
+
+```yaml
+# docker-compose.yml
+services:
+  web:
+    environment:
+      - DATABASE_PASSWORD=${DB_PASSWORD}
+      - API_KEY=${API_KEY}
+```
+
+Create a `.env` file (don't commit it):
+
+```
+DB_PASSWORD=your-secret-password
+API_KEY=your-api-key
+```
+
+## Health Checks
+
+Tell Docker to check if your app is actually running:
+
+```dockerfile
+HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
+  CMD curl -f http://localhost:3000 || exit 1
+```
+
+## Running as Non-Root
+
+Don't run your app as root for security:
+
+```dockerfile
+RUN addgroup -g 1001 -S nodejs
+RUN adduser -S nextjs -u 1001
+USER nextjs
+```
+
+## What to Include in .dockerignore
+
+Like .gitignore, but for Docker:
+
+```
+node_modules
+.next
+.git
+.env.local
+npm-debug.log
+README.md
+```
+
+## Debugging Problems
+
+When something goes wrong:
+
+```bash
+# See what's happening in a running container
+docker logs container-id -f
+
+# Get detailed info about a container
+docker inspect container-id
+
+# Interactive shell inside container
+docker exec -it container-id sh
+```
+
+## Deploying to Production
+
+Many platforms run Docker containers:
+
+- **Vercel** - Great for Next.js, free tier available
+- **Heroku** - Simple deployment, paid tier
+- **AWS** - Powerful but more complex
+- **DigitalOcean** - Good balance of simplicity and features
+- **Your own server** - Full control, more responsibility
+
+## Tips From Experience
+
+- Start simple with a basic Dockerfile
+- Use official base images (node:18-alpine is good for most projects)
+- Keep your images as small as possible
+- Use Docker Compose for local development
+- Test your Docker setup before pushing to production
+- Pay attention to security - run as non-root, keep images updated
+
+Docker might seem like a lot at first, but it really does make deployment so much easier. Once you're comfortable with the basics, you can explore more advanced topics like orchestration with Kubernetes. But for most projects, Docker and Docker Compose are all you need.
