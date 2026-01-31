@@ -1,0 +1,166 @@
+---
+title: "SEO Optimization for Modern Web Applications"
+date: "2024-02-01"
+author: "Lisa Anderson"
+tags: ["SEO", "Web Development", "Next.js", "Performance"]
+excerpt: "Improve your web application's visibility in search engines with technical SEO, content strategy, and performance optimization."
+---
+
+# SEO Optimization for Modern Web Applications
+
+Getting your website to show up in search results is a combination of technical work and content strategy. It's not as mysterious as some people make it out to be. Let me walk you through the key areas.
+
+## Why This Matters
+
+If you build something great but no one can find it, does it matter? Good SEO means more organic traffic, which is traffic that doesn't cost anything to acquire. It also means your users have a better experience because fast, well-structured sites rank better.
+
+## The Technical Foundations
+
+### Meta Tags
+
+Every page needs a good title and description. These are what show up in search results:
+
+```html
+<title>Getting Started with Next.js - ModernBlog</title>
+<meta
+  name="description"
+  content="Learn how to build fast web applications with Next.js 14"
+/>
+```
+
+Keep descriptions under 160 characters and make them compelling. This is your first impression.
+
+### Open Graph Tags
+
+When someone shares your article on social media, these tags control what image and text appear:
+
+```html
+<meta property="og:title" content="Getting Started with Next.js" />
+<meta property="og:description" content="Learn how to build..." />
+<meta property="og:image" content="https://example.com/image.jpg" />
+```
+
+### Structured Data
+
+Google appreciates when you tell it exactly what content you have. JSON-LD is the modern way:
+
+```json
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Getting Started with Next.js",
+  "author": {
+    "@type": "Person",
+    "name": "Sarah Johnson"
+  },
+  "datePublished": "2024-01-15"
+}
+```
+
+## Make Your Site Fast
+
+Google considers speed in its ranking algorithm. But more importantly, users leave slow sites. Here's what matters:
+
+- **Largest Contentful Paint** - How long until your main content loads (aim for under 2.5 seconds)
+- **First Input Delay** - How responsive your site feels (aim for under 100ms)
+- **Cumulative Layout Shift** - Things shouldn't jump around as it loads
+
+## Optimize Your Images
+
+Large images are one of the biggest performance killers. Use Next.js Image component:
+
+```javascript
+import Image from "next/image";
+
+export default function Article() {
+  return (
+    <Image
+      src="/article-image.jpg"
+      alt="Descriptive alt text about what's in the image"
+      width={1200}
+      height={630}
+      priority
+    />
+  );
+}
+```
+
+It automatically:
+
+- Serves modern WebP format when the browser supports it
+- Creates multiple sizes for different screen sizes
+- Lazy loads images below the fold
+
+## Create Good Content
+
+Technical optimization only gets you so far. Content is king because:
+
+- Use headings properly (one H1, then H2s and H3s in order)
+- Write naturally - stuff keywords in awkwardly and search engines will penalize you
+- Write longer-form content on important topics
+- Link to other relevant articles on your site
+- Keep content updated as information changes
+
+## Build a Sitemap
+
+A sitemap tells search engines what pages you have and when they were last updated:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://example.com/</loc>
+    <lastmod>2024-02-01</lastmod>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://example.com/posts/getting-started</loc>
+    <lastmod>2024-02-01</lastmod>
+    <priority>0.8</priority>
+  </url>
+</urlset>
+```
+
+## Use an RSS Feed
+
+Some people still use RSS readers, and it helps with discoverability:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>My Blog</title>
+    <item>
+      <title>Getting Started with Next.js</title>
+      <link>https://example.com/posts/getting-started</link>
+      <pubDate>Mon, 15 Jan 2024 00:00:00 GMT</pubDate>
+    </item>
+  </channel>
+</rss>
+```
+
+## Monitor Your Progress
+
+- **Google Search Console** - See how you rank and fix any issues
+- **Google Analytics** - Understand how people use your site
+- **Lighthouse** - Run this in Chrome DevTools to audit your site
+- **PageSpeed Insights** - Check your Core Web Vitals
+
+## Practical Checklist
+
+Before launching a new article:
+
+- [ ] Unique title tag (50-60 characters)
+- [ ] Compelling meta description
+- [ ] One H1, properly organized H2s and H3s
+- [ ] Alt text for all images
+- [ ] Internal links to related content
+- [ ] Fast page load (test it locally)
+- [ ] Mobile responsive
+- [ ] No broken links
+
+## The Bottom Line
+
+SEO isn't magic. It's about building a fast, well-structured site with good content and being transparent with search engines about what you have. Start with the basics, keep an eye on your analytics, and iterate from there.
+
+The best SEO is great content on a fast, accessible site. Everything else is supporting that foundation.
