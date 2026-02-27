@@ -31,3 +31,10 @@ coverage/
 
 # Debug
 *.log
+
+# TypeScript cache
+tsconfig.tsbuildinfo
+
+# Generated SEO artifacts
+public/sitemap.xml
+public/rss.xml

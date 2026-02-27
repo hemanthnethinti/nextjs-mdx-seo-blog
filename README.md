@@ -1,6 +1,6 @@
 # ModernBlog - Next.js SEO Blog Platform
 
-A production-ready, high-performance blog platform built with Next.js 14, TypeScript, Tailwind CSS, and MDX. This project implements static site generation, dark mode support, pagination, SEO optimization, and complete Docker containerization.
+A production-ready, high-performance blog platform built with Next.js 16, TypeScript, Tailwind CSS, and MDX. This project implements static site generation, dark mode support, pagination, SEO optimization, and complete Docker containerization.
 
 ## Project Overview
 
@@ -22,15 +22,15 @@ ModernBlog is a complete blogging solution designed with modern web development 
 
 ## Technology Stack
 
-- **Framework**: Next.js 14.1.0 (Pages Router)
+- **Framework**: Next.js 16.1.6 (Pages Router)
 - **Language**: TypeScript 5.3.3
 - **Styling**: Tailwind CSS 3.4.1
 - **Content**: MDX with gray-matter for frontmatter parsing
 - **SEO**: next-seo for meta tag management
 - **Syntax Highlighting**: Prism React Renderer
 - **Containerization**: Docker with Alpine Linux base
-- **Node.js**: Version 18 LTS
-- **Package Manager**: npm
+- **Node.js**: Version 22 LTS (minimum 20.9.0)
+- **Package Manager**: npm (minimum 10.9.0)
 
 ## Architectural Decisions
 
@@ -79,7 +79,7 @@ Multi-stage Docker build optimizes the production image:
 
 - First stage: Build the Next.js application
 - Second stage: Copy only production artifacts
-- Alpine Linux base reduces image size
+- Alpine Linux with Node.js 22 base reduces image size
 - Non-root user execution for security
 - Health checks for monitoring
 
@@ -135,7 +135,7 @@ nextjs-mdx-seo-blog/
 │
 ├── .dockerignore                  # Files to exclude from Docker image
 ├── .env.example                   # Environment variable template
-├── .eslintrc.json                 # ESLint configuration
+├── eslint.config.mjs              # ESLint flat configuration
 ├── .gitignore                     # Git ignore rules
 ├── docker-compose.yml             # Docker Compose configuration
 ├── Dockerfile                     # Multi-stage Docker build
@@ -152,7 +152,8 @@ nextjs-mdx-seo-blog/
 
 ### Prerequisites
 
-- Node.js 18 or higher
+- Node.js 22 LTS recommended (minimum 20.9.0)
+- npm 10.9.0 or higher
 - npm or yarn package manager
 - Docker and Docker Compose (for containerized deployment)
 - Git for version control
@@ -211,16 +212,16 @@ The recommended way to deploy this application:
 
 ```bash
 # Build and start the application
-docker-compose up --build -d
+docker compose up --build -d
 
 # Check container status
-docker-compose ps
+docker compose ps
 
 # View application logs
-docker-compose logs -f web
+docker compose logs -f web
 
 # Stop the application
-docker-compose down
+docker compose down
 ```
 
 The application will be available at http://localhost:3000.
@@ -230,7 +231,7 @@ The application will be available at http://localhost:3000.
 **Dockerfile Features:**
 
 - Multi-stage build strategy reduces final image size
-- Alpine Linux 3.18 as base image for minimal footprint
+- Node.js 22 on Alpine Linux as base image for minimal footprint
 - Build stage compiles Next.js and installs production dependencies
 - Runtime stage includes only necessary files and assets
 - Non-root user execution improves security posture
@@ -262,10 +263,74 @@ docker ps --format "table {{.Names}}\t{{.Status}}"
 
 If the container shows as unhealthy despite working correctly:
 
-1. Check logs: `docker-compose logs web`
+1. Check logs: `docker compose logs web`
 2. Test manually: `curl http://localhost:3000`
 3. Verify port availability: The port 3000 should not be in use by other applications
 4. Increase health check timeout in `docker-compose.yml` if needed
+
+## Vercel Deployment (CI/CD)
+
+### Recommended Order (Do this first to last)
+
+1. Local quality checks:
+
+- `npm ci`
+- `npm run lint`
+- `npx tsc --noEmit`
+- `npm run build`
+
+2. Docker validation (local):
+
+- Start Docker Desktop
+- `docker compose build`
+- `docker compose up -d`
+- `docker compose ps`
+- `docker compose down`
+
+3. CI/CD wiring (GitHub):
+
+- Ensure [`.github/workflows/vercel-ci-cd.yml`](.github/workflows/vercel-ci-cd.yml) exists
+- Add GitHub secrets: `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`
+
+4. Vercel project setup:
+
+- Import repo in Vercel
+- Build command: `npm run build`
+- Install command: `npm ci`
+- Add env vars: `BASE_URL`, `NODE_ENV=production`
+
+5. Final deploy flow:
+
+- Push to `main` for production deploy
+- Open PR for preview deploy
+
+This repository includes GitHub Actions + Vercel CLI deployment via [`.github/workflows/vercel-ci-cd.yml`](.github/workflows/vercel-ci-cd.yml).
+
+### Required GitHub Secrets
+
+Add these in GitHub → Settings → Secrets and variables → Actions:
+
+- `VERCEL_TOKEN`
+- `VERCEL_ORG_ID`
+- `VERCEL_PROJECT_ID`
+
+### How the pipeline works
+
+- Pull requests to `main`: runs lint + typecheck + build, then deploys a Vercel Preview and comments the URL on the PR.
+- Pushes to `main`: runs lint + typecheck + build, then deploys to Vercel Production.
+
+### Vercel Project Settings
+
+- Build Command: `npm run build`
+- Install Command: `npm ci`
+- Framework Preset: `Next.js`
+
+Set environment variables in Vercel:
+
+- `BASE_URL=https://your-production-domain`
+- `NODE_ENV=production`
+
+Do not set `PORT` in Vercel; Vercel injects it automatically.
 
 ## Content Management
 
@@ -543,7 +608,7 @@ This project is ready for submission with the following contents:
 Single command to build and run:
 
 ```bash
-docker-compose up --build -d
+docker compose up --build -d
 ```
 
 The application will be available at http://localhost:3000

@@ -1,5 +1,5 @@
-# Use Node.js 18 Alpine as base image
-FROM node:18-alpine AS base
+# Use Node.js 22 Alpine as base image
+FROM node:22-alpine AS base
 
 # Install dependencies only when needed
 FROM base AS deps
@@ -25,6 +25,7 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 ENV PORT=3000
+ENV HOSTNAME=0.0.0.0
 
 RUN apk add --no-cache curl
 
