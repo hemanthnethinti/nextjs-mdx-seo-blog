@@ -6,6 +6,13 @@ A production-ready, high-performance blog platform built with Next.js 16, TypeSc
 
 ModernBlog is a complete blogging solution designed with modern web development practices. It combines the speed of static site generation with the flexibility of MDX for rich content creation. All pages are pre-rendered at build time, ensuring exceptional performance and SEO benefits.
 
+## Latest Updates (2026-02-28)
+
+- Added a clearer terminal-first Docker run flow (`docker compose up --build -d`, status check, logs, and shutdown).
+- Added one-block Docker verification commands for quick copy/paste execution.
+- Updated Vercel install command guidance to `npm ci --include=dev` to avoid TypeScript package issues during build.
+- Documented Vercel Deployment Protection behavior when production returns `Authentication Required`.
+
 ### Key Capabilities
 
 - Static Site Generation (SSG) for optimal performance
@@ -208,23 +215,42 @@ The application will be available at http://localhost:3000. The development serv
 
 ### Quick Start with Docker Compose
 
-The recommended way to deploy this application:
+Use this exact terminal flow (PowerShell, CMD, or Bash):
 
 ```bash
-# Build and start the application
+# 1) Open terminal in project root
+# cd nextjs-mdx-seo-blog
+
+# 2) Build image and start container
 docker compose up --build -d
 
-# Check container status
+# 3) Wait for healthy status
 docker compose ps
 
-# View application logs
+# 4) Confirm app is live
+# Browser: http://localhost:3000
+
+# 5) Follow logs (optional)
 docker compose logs -f web
 
-# Stop the application
+# 6) Stop when done
 docker compose down
 ```
 
-The application will be available at http://localhost:3000.
+Expected result:
+
+- `web` service shows `Up ... (healthy)`
+- `http://localhost:3000` loads successfully
+
+### One-Block Terminal Commands
+
+If you prefer copy/paste in one run:
+
+```bash
+docker compose up --build -d
+docker compose ps
+docker compose logs --tail 50 web
+```
 
 ### Docker Architecture
 
@@ -296,8 +322,9 @@ If the container shows as unhealthy despite working correctly:
 
 - Import repo in Vercel
 - Build command: `npm run build`
-- Install command: `npm ci`
+- Install command: `npm ci --include=dev`
 - Add env vars: `BASE_URL`, `NODE_ENV=production`
+- If the site is not public, disable deployment protection for production
 
 5. Final deploy flow:
 
@@ -322,7 +349,7 @@ Add these in GitHub → Settings → Secrets and variables → Actions:
 ### Vercel Project Settings
 
 - Build Command: `npm run build`
-- Install Command: `npm ci`
+- Install Command: `npm ci --include=dev`
 - Framework Preset: `Next.js`
 
 Set environment variables in Vercel:
@@ -331,6 +358,11 @@ Set environment variables in Vercel:
 - `NODE_ENV=production`
 
 Do not set `PORT` in Vercel; Vercel injects it automatically.
+
+If your production URL returns **Authentication Required**, check:
+
+- Vercel Project → Settings → Deployment Protection
+- Disable `Vercel Authentication` for production (or set access policy as needed)
 
 ## Content Management
 
@@ -735,4 +767,4 @@ This implementation demonstrates:
 
 Built with Next.js, TypeScript, Tailwind CSS, and Docker.
 
-Last updated: January 31, 2024
+Last updated: February 28, 2026
